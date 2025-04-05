@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -57,6 +58,7 @@ func (wh *WorkoutHandler) HandleCreateWorkout(w http.ResponseWriter, r *http.Req
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(createdWorkout)
 }
 func (wh *WorkoutHandler) HandleUpdateWorkoutByID(w http.ResponseWriter, r *http.Request) {
@@ -114,4 +116,31 @@ func (wh *WorkoutHandler) HandleUpdateWorkoutByID(w http.ResponseWriter, r *http
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(existingWorkout)
+}
+func (wh *WorkoutHandler) HandleDeleteWorkout(w http.ResponseWriter, r *http.Request) {
+	paramWorkoutId := chi.URLParam(r, "id")
+	if paramWorkoutId == "" {
+		http.NotFound(w, r)
+		return
+	}
+	workoutID, err := strconv.Atoi(paramWorkoutId)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	err = wh.Workoutstore.DeleteWorkout(workoutID)
+	if err == sql.ErrNoRows {
+		http.Error(w, "Workout not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Failed To Delete the workout", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	response := map[string]interface{}{
+		"message": fmt.Sprintf("Workout with ID %d has been successfully delted", workoutID),
+		"status":  "success",
+	}
+	json.NewEncoder(w).Encode(response)
 }
