@@ -15,9 +15,9 @@ type WorkoutHandler struct {
 	Workoutstore store.WorkoutStore
 }
 
-func NewWorkoutHandler(workoutSotre store.WorkoutStore) *WorkoutHandler {
+func NewWorkoutHandler(workoutStore store.WorkoutStore) *WorkoutHandler {
 	return &WorkoutHandler{
-		Workoutstore: workoutSotre,
+		Workoutstore: workoutStore,
 	}
 }
 
