@@ -29,8 +29,11 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
 	defer myApp.DB.Close()
+
 	router := routes.SetUpRoutes(myApp)
+
 	myApp.Logger.Printf("Running Our App on port %d", port)
 
 	server := &http.Server{

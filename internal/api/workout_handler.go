@@ -1,17 +1,23 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/yehiamoh/go-fem-workshop/internal/store"
 )
 
-type WorkoutHandler struct{}
+type WorkoutHandler struct {
+	Workoutstore store.WorkoutStore
+}
 
-func NewWorkoutHandler() *WorkoutHandler {
-	return &WorkoutHandler{}
+func NewWorkoutHandler(workoutSotre store.WorkoutStore) *WorkoutHandler {
+	return &WorkoutHandler{
+		Workoutstore: workoutSotre,
+	}
 }
 
 func (wh *WorkoutHandler) HandleGetWorkOutByID(w http.ResponseWriter, r *http.Request) {
@@ -25,8 +31,87 @@ func (wh *WorkoutHandler) HandleGetWorkOutByID(w http.ResponseWriter, r *http.Re
 		http.NotFound(w, r)
 		return
 	}
-	fmt.Fprintf(w, "this is the workout id %d\n", workoutID)
+	workout, err := wh.Workoutstore.GetWorkoutByID(workoutID)
+	if err != nil {
+		http.Error(w, "Failed to retrieve the workout", http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(workout)
+
+	//fmt.Fprintf(w, "this is the workout id %d\n", workoutID)
 }
 func (wh *WorkoutHandler) HandleCreateWorkout(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Created Workout \n")
+	var workout store.Workout
+	err := json.NewDecoder(r.Body).Decode(&workout)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	createdWorkout, err := wh.Workoutstore.CreateWorkout(&workout)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(createdWorkout)
+}
+func (wh *WorkoutHandler) HandleUpdateWorkoutByID(w http.ResponseWriter, r *http.Request) {
+	paramsWorkoutID := chi.URLParam(r, "id")
+	if paramsWorkoutID == "" {
+		http.NotFound(w, r)
+		return
+	}
+	workoutID, err := strconv.Atoi(paramsWorkoutID)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	existingWorkout, err := wh.Workoutstore.GetWorkoutByID(workoutID)
+	if err != nil {
+		http.Error(w, "Failed to Fetch workout", http.StatusInternalServerError)
+		return
+	}
+	if existingWorkout == nil {
+		http.NotFound(w, r)
+		return
+	}
+	var updateWorkoutRequest struct {
+		Title           *string               `json:"title"`
+		Description     *string               `json:"description"`
+		DurationMinutes *int                  `json:"duration_minutes"`
+		CaloriesBurned  *int                  `json:"calories_burned"`
+		Entries         *[]store.WorkoutEntry `json:"entries"`
+	}
+	err = json.NewDecoder(r.Body).Decode(&updateWorkoutRequest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if updateWorkoutRequest.Title != nil {
+		existingWorkout.Title = *updateWorkoutRequest.Title
+	}
+	if updateWorkoutRequest.Description != nil {
+		existingWorkout.Description = *updateWorkoutRequest.Description
+	}
+	if updateWorkoutRequest.DurationMinutes != nil {
+		existingWorkout.DurationMinutes = *updateWorkoutRequest.DurationMinutes
+	}
+	if updateWorkoutRequest.CaloriesBurned != nil {
+		existingWorkout.CaloriesBurned = *updateWorkoutRequest.CaloriesBurned
+	}
+	if updateWorkoutRequest.Entries != nil {
+		existingWorkout.Entries = *updateWorkoutRequest.Entries
+	}
+	if err := wh.Workoutstore.UpdateWorkout(existingWorkout); err != nil {
+		http.Error(w, "Failed to update workout", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(existingWorkout)
 }

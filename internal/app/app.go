@@ -30,10 +30,12 @@ func NewApplication() (*Application, error) {
 	}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
-	workOutHandler := api.NewWorkoutHandler()
+	workoutStore := store.NewPostgresWorkoutStore(pgDB)
+	workoutHandler := api.NewWorkoutHandler(workoutStore)
+
 	app := &Application{
 		Logger:         logger,
-		WorkoutHandler: workOutHandler,
+		WorkoutHandler: workoutHandler,
 		DB:             pgDB,
 	}
 	return app, nil
