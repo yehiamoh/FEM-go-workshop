@@ -6,16 +6,29 @@ import (
 )
 
 func SetUpRoutes(app *app.Application) *chi.Mux {
-	r := chi.NewRouter()
-	r.Get("/health", app.HealthCheck)
+	router := chi.NewRouter()
+	router.Get("/health", app.HealthCheck)
+	registerWorkoutRoutes(router, app)
+	registerUserRoutes(router, app)
+	registerTokenRoutes(router, app)
+	return router
+}
 
-	r.Post("/workouts", app.WorkoutHandler.HandleCreateWorkout)
-	r.Get("/workouts/{id}", app.WorkoutHandler.HandleGetWorkOutByID)
-	r.Put("/workouts/{id}", app.WorkoutHandler.HandleUpdateWorkoutByID)
-	r.Delete("/workouts/{id}", app.WorkoutHandler.HandleDeleteWorkout)
-
-	r.Post("/users", app.UserHandler.HandleRegisterUser)
-
-	r.Post("/token/autentication", app.TokenHandler.HandleCreateToken)
-	return r
+func registerWorkoutRoutes(router *chi.Mux, app *app.Application) {
+	router.Route("/workouts", func(r chi.Router) {
+		r.Post("/", app.WorkoutHandler.HandleCreateWorkout)
+		r.Get("/{id}", app.WorkoutHandler.HandleGetWorkOutByID)
+		r.Put("/{id}", app.WorkoutHandler.HandleUpdateWorkoutByID)
+		r.Delete("/{id}", app.WorkoutHandler.HandleDeleteWorkout)
+	})
+}
+func registerUserRoutes(router *chi.Mux, app *app.Application) {
+	router.Route("/users", func(r chi.Router) {
+		r.Post("/", app.UserHandler.HandleRegisterUser)
+	})
+}
+func registerTokenRoutes(router *chi.Mux, app *app.Application) {
+	router.Route("/token/authentication", func(r chi.Router) {
+		r.Post("/", app.TokenHandler.HandleCreateToken)
+	})
 }
