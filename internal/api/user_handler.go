@@ -12,7 +12,7 @@ import (
 )
 
 type registerUserRequest struct {
-	Username string `json:"username"`
+	Username string `json:"user_name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Bio      string `json:"bio"`

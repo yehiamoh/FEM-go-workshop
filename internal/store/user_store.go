@@ -23,7 +23,7 @@ func (p *password) Set(plainTextPassowrd string) error {
 	return nil
 }
 
-func (p *password) isMatch(plainTextPassowrd string) (bool, error) {
+func (p *password) IsMatch(plainTextPassowrd string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword(p.hash, []byte(plainTextPassowrd))
 
 	if err != nil {
@@ -59,7 +59,7 @@ func NewPostgresUserStore(db *sql.DB) *PostgresUserStore {
 
 type UserStore interface {
 	CreateUser(*User) error
-	GetUserByUserName(id int) (*User, error)
+	GetUserByUserName(username string) (*User, error)
 	UpdateUser(*User) error
 }
 
@@ -75,20 +75,20 @@ func (pg *PostgresUserStore) CreateUser(user *User) error {
 	}
 	return nil
 }
-func (pg *PostgresUserStore) GetUserByUserName(id int) (*User, error) {
+func (pg *PostgresUserStore) GetUserByUserName(username string) (*User, error) {
 	user := &User{
 		PasswordHash: password{},
 	}
 	query := `
-	SELECT id,username,email,password_hash,bio,created_at,updated_at
+	SELECT id,user_name,email,password_hash,bio,created_at,updated_at
 	FROM users 
-	WHERE username=$1
+	WHERE user_name=$1
 	`
-	err := pg.db.QueryRow(query, user.Username).Scan(
+	err := pg.db.QueryRow(query, username).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Email,
-		&user.PasswordHash,
+		&user.PasswordHash.hash,
 		&user.Bio,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -104,8 +104,8 @@ func (pg *PostgresUserStore) GetUserByUserName(id int) (*User, error) {
 func (pg *PostgresUserStore) UpdateUser(user *User) error {
 
 	query := `
-	UPDATE useres
-	SET username=$1,email=$2,bio=$3,updated_at=CURRENT_TIMESTAMP
+	UPDATE users
+	SET user_name=$1,email=$2,bio=$3,updated_at=CURRENT_TIMESTAMP
 	WHERE id =$4 
 	`
 	res, err := pg.db.Exec(query, user.Username, user.Email, user.Bio, user.ID)
