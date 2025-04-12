@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/yehiamoh/go-fem-workshop/internal/store"
-	"github.com/yehiamoh/go-fem-workshop/internal/tokens"
-	"github.com/yehiamoh/go-fem-workshop/internal/utils"
+	"github.com/yehiamoh/go-fem-workshop/pkg/store"
+	"github.com/yehiamoh/go-fem-workshop/pkg/tokens"
+	"github.com/yehiamoh/go-fem-workshop/pkg/utils"
 )
 
 type TokenHandler struct {

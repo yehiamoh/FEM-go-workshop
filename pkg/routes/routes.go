@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/yehiamoh/go-fem-workshop/internal/app"
+	"github.com/yehiamoh/go-fem-workshop/pkg/app"
 )
 
 func SetUpRoutes(app *app.Application) *chi.Mux {

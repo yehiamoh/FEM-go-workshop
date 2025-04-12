@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/yehiamoh/go-fem-workshop/internal/api"
-	"github.com/yehiamoh/go-fem-workshop/internal/store"
 	"github.com/yehiamoh/go-fem-workshop/migrations"
+	"github.com/yehiamoh/go-fem-workshop/pkg/api"
+	"github.com/yehiamoh/go-fem-workshop/pkg/store"
 )
 
 type Application struct {
