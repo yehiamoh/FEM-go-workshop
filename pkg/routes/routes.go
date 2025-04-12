@@ -15,11 +15,12 @@ func SetUpRoutes(app *app.Application) *chi.Mux {
 }
 
 func registerWorkoutRoutes(router *chi.Mux, app *app.Application) {
+	router.Get("/workouts/{id}", app.WorkoutHandler.HandleGetWorkOutByID)
 	router.Route("/workouts", func(r chi.Router) {
-		r.Post("/", app.WorkoutHandler.HandleCreateWorkout)
-		r.Get("/{id}", app.WorkoutHandler.HandleGetWorkOutByID)
-		r.Put("/{id}", app.WorkoutHandler.HandleUpdateWorkoutByID)
-		r.Delete("/{id}", app.WorkoutHandler.HandleDeleteWorkout)
+		r.Use(app.MiddlwareHandler.Authenticate)
+		r.Post("/", app.MiddlwareHandler.RequireUser(app.WorkoutHandler.HandleCreateWorkout))
+		r.Put("/{id}", app.MiddlwareHandler.RequireUser(app.WorkoutHandler.HandleUpdateWorkoutByID))
+		r.Delete("/{id}", app.MiddlwareHandler.RequireUser(app.WorkoutHandler.HandleDeleteWorkout))
 	})
 }
 func registerUserRoutes(router *chi.Mux, app *app.Application) {

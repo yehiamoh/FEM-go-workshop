@@ -9,15 +9,17 @@ import (
 
 	"github.com/yehiamoh/go-fem-workshop/migrations"
 	"github.com/yehiamoh/go-fem-workshop/pkg/api"
+	"github.com/yehiamoh/go-fem-workshop/pkg/middleware"
 	"github.com/yehiamoh/go-fem-workshop/pkg/store"
 )
 
 type Application struct {
-	Logger         *log.Logger
-	WorkoutHandler *api.WorkoutHandler
-	UserHandler    *api.UserHandler
-	TokenHandler   *api.TokenHandler
-	DB             *sql.DB
+	Logger           *log.Logger
+	WorkoutHandler   *api.WorkoutHandler
+	UserHandler      *api.UserHandler
+	TokenHandler     *api.TokenHandler
+	MiddlwareHandler *middleware.UserMiddleware
+	DB               *sql.DB
 }
 
 func NewApplication() (*Application, error) {
@@ -41,12 +43,17 @@ func NewApplication() (*Application, error) {
 	tokenSotre := store.NewPostgresTokenStore(pgDB)
 	tokenHandler := api.NewTokenHandler(tokenSotre, userStore, logger)
 
+	middlewareHandler := &middleware.UserMiddleware{
+		UserStore: userStore,
+	}
+
 	app := &Application{
-		Logger:         logger,
-		WorkoutHandler: workoutHandler,
-		UserHandler:    userHandler,
-		TokenHandler:   tokenHandler,
-		DB:             pgDB,
+		Logger:           logger,
+		WorkoutHandler:   workoutHandler,
+		UserHandler:      userHandler,
+		TokenHandler:     tokenHandler,
+		MiddlwareHandler: middlewareHandler,
+		DB:               pgDB,
 	}
 	return app, nil
 }
